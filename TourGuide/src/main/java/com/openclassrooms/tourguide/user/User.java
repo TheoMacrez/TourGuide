@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import gpsUtil.location.VisitedLocation;
 import tripPricer.Provider;
@@ -15,7 +16,12 @@ public class User {
 	private String emailAddress;
 	private Date latestLocationTimestamp;
 	private List<VisitedLocation> visitedLocations = new ArrayList<>();
-	private List<UserReward> userRewards = new ArrayList<>();
+
+	// Modification from a basic List to  a CopyOnWriteArrayList
+	// to resolve the ConcurrentModificationException
+	// in the RewardsService.calculateRewards
+	private CopyOnWriteArrayList<UserReward> userRewards = new CopyOnWriteArrayList<>();
+
 	private UserPreferences userPreferences = new UserPreferences();
 	private List<Provider> tripDeals = new ArrayList<>();
 	public User(UUID userId, String userName, String phoneNumber, String emailAddress) {
@@ -68,14 +74,39 @@ public class User {
 	public void clearVisitedLocations() {
 		visitedLocations.clear();
 	}
-	
+
 	public void addUserReward(UserReward userReward) {
-		if(userRewards.stream().filter(r -> !r.attraction.attractionName.equals(userReward.attraction)).count() == 0) {
+
+		String attractionName = userReward.attraction.attractionName;
+
+		// Verify if the reward is not already in the list without modifying it
+		boolean exists = false;
+		for (UserReward reward : userRewards) {
+			if (reward.attraction.attractionName.equals(attractionName)) {
+				exists = true;
+				break;
+			}
+		}
+
+		if (!exists) {
 			userRewards.add(userReward);
 		}
 	}
-	
-	public List<UserReward> getUserRewards() {
+
+	public boolean canAddReward(UserReward userReward)
+	{
+		String attractionName = userReward.attraction.attractionName;
+		// Verify if the reward is not already in the list without modifying it
+		for (UserReward reward : userRewards) {
+			if (reward.attraction.attractionName.equals(attractionName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	public CopyOnWriteArrayList<UserReward> getUserRewards() {
 		return userRewards;
 	}
 	

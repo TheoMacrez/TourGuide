@@ -1,5 +1,6 @@
 package com.openclassrooms.tourguide.service;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -22,6 +23,8 @@ public class RewardsService {
 	private int attractionProximityRange = 200;
 	private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
+
+	private final HashMap<Attraction, Double> allDistances = new HashMap<>();
 	
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
 		this.gpsUtil = gpsUtil;
@@ -38,13 +41,28 @@ public class RewardsService {
 	
 	public void calculateRewards(User user) {
 		List<VisitedLocation> userLocations = user.getVisitedLocations();
-		List<Attraction> attractions = gpsUtil.getAttractions();
+		List<Attraction> allAttractions = gpsUtil.getAttractions();
 		
 		for(VisitedLocation visitedLocation : userLocations) {
-			for(Attraction attraction : attractions) {
-				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
-					if(nearAttraction(visitedLocation, attraction)) {
-						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+			for(Attraction attractionFromList : allAttractions) {
+				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attractionFromList.attractionName)).count() == 0) {
+					if(nearAttraction(visitedLocation, attractionFromList)) {
+						user.addUserReward(new UserReward(visitedLocation, attractionFromList, getRewardPoints(attractionFromList, user)));
+					}
+				}
+			}
+		}
+	}
+
+	public void calculateRewardsBis(User user) {
+		List<VisitedLocation> userLocations = user.getVisitedLocations();
+		List<Attraction> allAttractions = gpsUtil.getAttractions();
+
+		for(VisitedLocation visitedLocation : userLocations) {
+			for(Attraction attractionFromList : allAttractions) {
+				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attractionFromList.attractionName)).count() == 0) {
+					if(nearAttraction(visitedLocation, attractionFromList)) {
+						user.addUserReward(new UserReward(visitedLocation, attractionFromList, getRewardPoints(attractionFromList, user)));
 					}
 				}
 			}
@@ -52,6 +70,8 @@ public class RewardsService {
 	}
 	
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
+		System.out.println("distance from: " + attraction.attractionName + "= " + getDistance(attraction, location));
+		allDistances.put(attraction,getDistance(attraction, location));
 		return getDistance(attraction, location) > attractionProximityRange ? false : true;
 	}
 	
