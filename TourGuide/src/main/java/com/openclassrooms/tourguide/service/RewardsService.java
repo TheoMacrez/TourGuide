@@ -2,6 +2,7 @@ package com.openclassrooms.tourguide.service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ public class RewardsService {
 	// proximity in miles
     private int defaultProximityBuffer = 10;
 	private int proximityBuffer = defaultProximityBuffer;
-	private int attractionProximityRange = 200;
+	private int attractionProximityRange = 10000;
 	private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
 
@@ -40,7 +41,8 @@ public class RewardsService {
 	}
 	
 	public void calculateRewards(User user) {
-		List<VisitedLocation> userLocations = user.getVisitedLocations();
+		// Change on from an ArrayList to a CopyOnWriteArrayList
+		List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
 		List<Attraction> allAttractions = gpsUtil.getAttractions();
 		
 		for(VisitedLocation visitedLocation : userLocations) {
@@ -52,22 +54,10 @@ public class RewardsService {
 				}
 			}
 		}
+
+
 	}
 
-	public void calculateRewardsBis(User user) {
-		List<VisitedLocation> userLocations = user.getVisitedLocations();
-		List<Attraction> allAttractions = gpsUtil.getAttractions();
-
-		for(VisitedLocation visitedLocation : userLocations) {
-			for(Attraction attractionFromList : allAttractions) {
-				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attractionFromList.attractionName)).count() == 0) {
-					if(nearAttraction(visitedLocation, attractionFromList)) {
-						user.addUserReward(new UserReward(visitedLocation, attractionFromList, getRewardPoints(attractionFromList, user)));
-					}
-				}
-			}
-		}
-	}
 	
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		System.out.println("distance from: " + attraction.attractionName + "= " + getDistance(attraction, location));
@@ -79,7 +69,7 @@ public class RewardsService {
 		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
 	}
 	
-	private int getRewardPoints(Attraction attraction, User user) {
+	public int getRewardPoints(Attraction attraction, User user) {
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
 	}
 	

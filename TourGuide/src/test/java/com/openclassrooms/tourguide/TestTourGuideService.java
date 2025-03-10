@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.UUID;
 
+import com.openclassrooms.tourguide.dto.AttractionDistanceFromUser;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -103,7 +104,12 @@ public class TestTourGuideService {
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
 
-		List<Attraction> attractions = tourGuideService.getNearByAttractions(visitedLocation);
+		List<AttractionDistanceFromUser> attractions = tourGuideService.getNearByAttractions(user,visitedLocation, 5);
+
+		for (AttractionDistanceFromUser attractionDistanceFromUser : attractions)
+		{
+			System.out.println(attractionDistanceFromUser.getAttraction().attractionName);
+		}
 
 		tourGuideService.tracker.stopTracking();
 

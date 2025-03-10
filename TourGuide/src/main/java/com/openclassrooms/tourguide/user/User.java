@@ -22,6 +22,7 @@ public class User {
 	// in the RewardsService.calculateRewards
 	private CopyOnWriteArrayList<UserReward> userRewards = new CopyOnWriteArrayList<>();
 
+
 	private UserPreferences userPreferences = new UserPreferences();
 	private List<Provider> tripDeals = new ArrayList<>();
 	public User(UUID userId, String userName, String phoneNumber, String emailAddress) {
@@ -130,4 +131,18 @@ public class User {
 		return tripDeals;
 	}
 
+	@Override
+	public String toString() {
+		return "User{" +
+				"userId=" + userId +
+				", userName='" + userName + '\'' +
+				", phoneNumber='" + phoneNumber + '\'' +
+				", emailAddress='" + emailAddress + '\'' +
+				", latestLocationTimestamp=" + latestLocationTimestamp +
+				", visitedLocations=" + visitedLocations +
+				", userRewards=" + userRewards +
+				", userPreferences=" + userPreferences +
+				", tripDeals=" + tripDeals +
+				'}';
+	}
 }
