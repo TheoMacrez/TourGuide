@@ -2,7 +2,10 @@ package com.openclassrooms.tourguide.service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,7 @@ public class RewardsService {
 	private int attractionProximityRange = 10000;
 	private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
+	private final static ExecutorService executorService = Executors.newFixedThreadPool(100);
 
 	private final HashMap<Attraction, Double> allDistances = new HashMap<>();
 	
@@ -41,24 +45,45 @@ public class RewardsService {
 	}
 	
 	public void calculateRewards(User user) {
-		// Change on from an ArrayList to a CopyOnWriteArrayList
-		List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
-		List<Attraction> allAttractions = gpsUtil.getAttractions();
-		
-		for(VisitedLocation visitedLocation : userLocations) {
-			for(Attraction attractionFromList : allAttractions) {
-				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attractionFromList.attractionName)).count() == 0) {
-					if(nearAttraction(visitedLocation, attractionFromList)) {
-						user.addUserReward(new UserReward(visitedLocation, attractionFromList, getRewardPoints(attractionFromList, user)));
+		// Wait for the asynchronous method to complete
+		calculateRewardsAsync(user).join();
+
+	}
+	public CompletableFuture<Void> calculateRewardsAsync(User user) {
+		return CompletableFuture.runAsync(() -> {
+			// Change on from an ArrayList to a CopyOnWriteArrayList
+			List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
+			List<Attraction> allAttractions = gpsUtil.getAttractions();
+
+			for (VisitedLocation visitedLocation : userLocations) {
+				for (Attraction attractionFromList : allAttractions) {
+					// Vérifier si l'utilisateur a déjà reçu une récompense pour cette attraction
+					if (user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attractionFromList.attractionName))) {
+						if (nearAttraction(visitedLocation, attractionFromList)) {
+							user.addUserReward(new UserReward(visitedLocation, attractionFromList, getRewardPoints(attractionFromList, user)));
+						}
 					}
 				}
 			}
-		}
-
-
+		},executorService)
+				.exceptionally(ex -> {
+			// Gérer les exceptions ici
+			System.err.println("Erreur lors du calcul des récompenses pour l'utilisateur " + user.getUserId() + ": " + ex.getMessage());
+			return null;
+		});
 	}
 
-	
+	public void calculateAllRewardsUsers(List<User> users)
+	{
+		// Calculer les récompenses de manière asynchrone
+		List<CompletableFuture<Void>> futures = users.stream()
+				.map(this::calculateRewardsAsync)
+				.toList();
+		futures.forEach(CompletableFuture::join);
+	}
+
+
+
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		System.out.println("distance from: " + attraction.attractionName + "= " + getDistance(attraction, location));
 		allDistances.put(attraction,getDistance(attraction, location));

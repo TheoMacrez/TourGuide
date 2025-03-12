@@ -3,7 +3,7 @@ package com.openclassrooms.tourguide;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.openclassrooms.tourguide.dto.NearbyAttraction;
+import com.openclassrooms.tourguide.dto.NearbyAttractionToJson;
 import com.openclassrooms.tourguide.dto.AttractionDistanceFromUser;
 import com.openclassrooms.tourguide.service.RewardsService;
 import gpsUtil.GpsUtil;
@@ -54,19 +54,19 @@ public class TourGuideController {
         // The reward points for visiting each Attraction.
         //    Note: Attraction reward points can be gathered from RewardsCentral
     @RequestMapping("/getNearbyAttractions")
-    public ResponseEntity<List<NearbyAttraction>> getNearbyAttractions(@RequestParam String userName) {
+    public ResponseEntity<List<NearbyAttractionToJson>> getNearbyAttractions(@RequestParam String userName) {
         VisitedLocation visitedLocation = tourGuideService.getUserLocation(getUser(userName));
         List<AttractionDistanceFromUser> nearbyAttractions = tourGuideService.getNearByAttractions(getUser(userName),visitedLocation,5);
 
-        List<NearbyAttraction> nearbyAttractionsToReturn= new ArrayList<>();
+        List<NearbyAttractionToJson> nearbyAttractionsToReturnToJson = new ArrayList<>();
         for (AttractionDistanceFromUser attractionDistanceFromUser : nearbyAttractions) {
             Attraction attraction = attractionDistanceFromUser.getAttraction();
-            nearbyAttractionsToReturn.add(new NearbyAttraction(attraction,
+            nearbyAttractionsToReturnToJson.add(new NearbyAttractionToJson(attraction,
                     visitedLocation,
                     attractionDistanceFromUser.getDistance(),
                     rewardsService.getRewardPoints(attraction,getUser(userName))));
         }
-        return ResponseEntity.ok(nearbyAttractionsToReturn);
+        return ResponseEntity.ok(nearbyAttractionsToReturnToJson);
     }
 
 

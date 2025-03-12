@@ -9,6 +9,10 @@ import com.openclassrooms.tourguide.user.UserReward;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -32,6 +36,7 @@ public class TourGuideService {
 	private final TripPricer tripPricer = new TripPricer();
 	public final Tracker tracker;
 	boolean testMode = true;
+	private final static ExecutorService executorService = Executors.newFixedThreadPool(100);
 
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
 		this.gpsUtil = gpsUtil;
@@ -59,6 +64,17 @@ public class TourGuideService {
 		return visitedLocation;
 	}
 
+	public CompletableFuture<VisitedLocation> getUserLocationAsync(User user) {
+		if (user.getVisitedLocations().size() > 0) {
+			// Retourne le dernier emplacement visité dans un CompletableFuture
+			return CompletableFuture.completedFuture(user.getLastVisitedLocation());
+		} else {
+			// Appelle la méthode asynchrone pour suivre la localisation de l'utilisateur
+			return trackUserLocationAsync(user);
+		}
+	}
+
+
 	public User getUser(String userName) {
 		return internalUserMap.get(userName);
 	}
@@ -83,11 +99,33 @@ public class TourGuideService {
 	}
 
 	public VisitedLocation trackUserLocation(User user) {
-		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
-		user.addToVisitedLocations(visitedLocation);
-		rewardsService.calculateRewards(user);
-		return visitedLocation;
+		// Use the asynchronous tracking method
+		CompletableFuture<VisitedLocation> futureVisitedLocation = trackUserLocationAsync(user);
+		// Wait for the asynchronous operation to complete and return the result
+		return futureVisitedLocation.join();
 	}
+
+
+	public CompletableFuture<VisitedLocation> trackUserLocationAsync(User user) {
+
+		return CompletableFuture.supplyAsync(() -> {
+			VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
+			user.addToVisitedLocations(visitedLocation);
+			rewardsService.calculateRewards(user);
+			return visitedLocation;
+		},executorService
+		);
+	}
+
+	public void trackAllUsersLocation(List<User> allUsers)
+	{
+		List<CompletableFuture<VisitedLocation>> completableFutureUserList = allUsers.stream().
+				map(this::trackUserLocationAsync).
+				toList();
+		completableFutureUserList.forEach(CompletableFuture::join);
+
+	}
+
 
 	public List<AttractionDistanceFromUser> getNearByAttractions(User user, VisitedLocation visitedLocation, int numberOfNearbyAttraction) {
 

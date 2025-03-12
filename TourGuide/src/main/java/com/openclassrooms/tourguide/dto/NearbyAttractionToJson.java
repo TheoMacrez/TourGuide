@@ -3,7 +3,7 @@ package com.openclassrooms.tourguide.dto;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 
-public class NearbyAttraction {
+public class NearbyAttractionToJson {
     private String attractionName;
     private double attractionLatitude;
     private double attractionLongitude;
@@ -12,7 +12,7 @@ public class NearbyAttraction {
     private double distanceInMiles;
     private int rewardPoints;
 
-    public NearbyAttraction(Attraction attraction, VisitedLocation userLocation, double distance, int rewardPoints) {
+    public NearbyAttractionToJson(Attraction attraction, VisitedLocation userLocation, double distance, int rewardPoints) {
         this.attractionName = attraction.attractionName;
         this.attractionLatitude = attraction.latitude;
         this.attractionLongitude = attraction.longitude;
