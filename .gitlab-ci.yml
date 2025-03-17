@@ -13,7 +13,7 @@ build_job:
   script:
     - cd TourGuide
     - chmod +x mvnw
-    - ./mvnw compile --batch-mode --errors --fail-at-end --show-version \
+    - ./mvnw compile --batch-mode --errors --fail-at-end --show-version -- \
       -DinstallAtEnd=true \
       -DdeployAtEnd=true \
       -Dhttps.protocols=TLSv1.2 \
@@ -21,6 +21,7 @@ build_job:
       -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN \
       -Dorg.slf4j.simpleLogger.showDateTime=true \
       -Djava.awt.headless=true
+
 
 
 
@@ -31,7 +32,7 @@ test_job:
   script:
     - cd TourGuide
     - chmod +x mvnw
-    - ./mvnw test --batch-mode --errors --fail-at-end --show-version \
+    - ./mvnw test --batch-mode --errors --fail-at-end --show-version -- \
       -DinstallAtEnd=true \
       -DdeployAtEnd=true \
       -Dhttps.protocols=TLSv1.2 \
@@ -39,5 +40,6 @@ test_job:
       -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN \
       -Dorg.slf4j.simpleLogger.showDateTime=true \
       -Djava.awt.headless=true
+
 
 
