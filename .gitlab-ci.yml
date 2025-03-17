@@ -9,11 +9,11 @@ cache:
 
 build_job:
   stage: build
-  image: eclipse-temurin:21-jdk-alpine  # Utiliser Java 21
+  image: maven:3.8.6-eclipse-temurin-21 # Utiliser Java 21
   script:
     - cd TourGuide
     - chmod +x mvnw
-    - ./mvnw clean install --batch-mode --errors --fail-at-end --show-version -- \
+    - ./mvnw compile --batch-mode --errors --fail-at-end --show-version -- \
       -DinstallAtEnd=true \
       -DdeployAtEnd=true \
       -Dhttps.protocols=TLSv1.2 \
@@ -28,7 +28,7 @@ build_job:
 
 test_job:
   stage: test
-  image: eclipse-temurin:21-jdk-alpine  # Utiliser Java 21
+  image: maven:3.8.6-eclipse-temurin-21  # Utiliser Java 21
   script:
     - cd TourGuide
     - chmod +x mvnw
