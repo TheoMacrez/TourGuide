@@ -21,6 +21,7 @@ build_job:
       -Djava.awt.headless=true \
       --batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true
 
+
 test_job:
   stage: test
   image: eclipse-temurin:21-jdk-alpine  # Utiliser Java 21
