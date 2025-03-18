@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - package
 
 cache:
   paths:
@@ -13,11 +14,7 @@ build_job:
   script:
     - cd TourGuide
     - chmod +x mvnw
-    - ./mvnw compile --batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
-
-
-
-
+    - ./mvnw compile --batch-mode --errors --fail-at-end --show-version -Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
 
 
 test_job:
@@ -28,5 +25,15 @@ test_job:
     - chmod +x mvnw
     - ./mvnw test --batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
 
-
+package_job:
+  stage: package
+  image: eclipse-temurin:21-jdk-alpine
+  script:
+    - cd TourGuide
+    - chmod +x mvnw
+    - ./mvnw clean package --batch-mode --errors --fail-at-end
+  artifacts:
+    paths:
+      - TourGuide/target/*.jar  # Sauvegarde le JAR généré
+    expire_in: 1 week  # Conserve le JAR pendant une semaine dans les artefacts
 
