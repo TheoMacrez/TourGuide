@@ -3,6 +3,13 @@ package com.openclassrooms.tourguide.dto;
 import com.openclassrooms.tourguide.user.User;
 import gpsUtil.location.Attraction;
 
+/**
+ * Represents the distance between a user and a tourist attraction.
+ * <p>
+ * This class stores information about a specific attraction, the user,
+ * and the calculated distance between them.
+ */
+
 public class AttractionDistanceFromUser {
     private Attraction attraction;
 

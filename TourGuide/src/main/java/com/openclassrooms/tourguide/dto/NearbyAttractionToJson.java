@@ -3,6 +3,15 @@ package com.openclassrooms.tourguide.dto;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 
+
+/**
+ * Represents a tourist attraction with the needed details formatted for JSON output.
+ * <p>
+ * This class is used to structure the nearby attractions' data when returning a response
+ * to the client, including the attraction's location, the user's location,
+ * the distance, and the reward points.
+ */
+
 public class NearbyAttractionToJson {
     private String attractionName;
     private double attractionLatitude;
